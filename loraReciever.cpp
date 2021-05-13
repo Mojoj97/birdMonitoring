@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 //Libraries for LoRa
@@ -12,7 +11,6 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include "ESP32_MailClient.h"
 #include "SD.h"
 #include "SPIFFS.h"
 //define the pins used by the LoRa transceiver module
@@ -50,16 +48,16 @@ String ringNumber;
 SensorData finalDatas[365];
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
 String LoRaData;
-const char* ssid     = "UPC38C38A7-LENT";
-const char* password = "mvzer7wP4raw";
-//const char* ssid     = "Vodafone-F59D";
-//const char* password = "uX8jpdwxhbCz";
-const char* serverName = "http://192.168.0.109/post-esp-data.php";
-//const char* serverName = "http://192.168.0.213/post-esp-data.php";
+//const char* ssid     = "UPC38C38A7-LENT";
+//const char* password = "mvzer7wP4raw";
+const char* ssid     = "Vodafone-F59D";
+const char* password = "uX8jpdwxhbCz";
+//const char* serverName = "http://192.168.0.109/post-esp-data.php";
+const char* serverName = "http://192.168.0.213/post-esp-data.php";
 String apiKeyValue = "tPmAT5Ab3j7F9";
-int counter = 0;
+int counter = -2;
 
-void processTheData();
+void processTheData(String LoRaData);
 void dataToFinalData();
 void postDataToWeb();
 void displayPacketRecieve();
@@ -119,7 +117,6 @@ void setup() {
 
 void loop() {
   //try to parse packet
-  
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     //received a packet
@@ -130,14 +127,15 @@ void loop() {
       Serial.print(LoRaData);
       Serial.println();
     }
-    processTheData();
+    processTheData(LoRaData);
     Serial.println(datas.size());
     Serial.println(actualSize);
+    Serial.println(counter);
     dataToFinalData();
     displayPacketRecieve();
-    if(actualSize/7 >= counter){
+    if(actualSize/7 <= counter){
       postDataToWeb();
-      counter =0; 
+      counter =-2; 
     }
     counter++;
   }  
@@ -228,7 +226,7 @@ void dataToFinalData(){
            } 
        }
 }
-void processTheData(){
+void processTheData(String LoRaData){
   if(LoRaData.length() == 16){
     ringNumber = LoRaData;
   } else if(LoRaData.length() == 1 || 
@@ -238,6 +236,7 @@ void processTheData(){
   } else {
     std::string str = LoRaData.c_str();
     int i=0;
+    struct SensorData sD;
     String tmp = "";
     String tmpLat = "";
     String tmpLong = "";
@@ -256,8 +255,9 @@ void processTheData(){
       } else if(c == ';') {
         tmpHum = tmp;
         tmp="";
-        datas.push_back({tmpTemp, tmpHum, tmpLat, tmpLong, false});
         ++i;
+        datas.push_back({tmpTemp, tmpHum, tmpLat, tmpLong, false});
+        
       } else {
         tmp += c;
       }
