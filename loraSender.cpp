@@ -1,5 +1,5 @@
 //  Include the required libraries:
-#include <Adafruit_Sensor.h>
+//#include <Adafruit_Sensor.h>
 #include <Adafruit_AM2320.h>
 //Libraries for LoRa
 #include <SPI.h>
@@ -10,7 +10,7 @@
 #include <Adafruit_SSD1306.h>
 #include <TinyGPS++.h>
 #include <HardwareSerial.h>
-#include <BlynkSimpleEsp32.h>
+//#include <BlynkSimpleEsp32.h>
 
 //define the pins used by the LoRa transceiver module
 #define SCK 5
@@ -26,7 +26,7 @@
 #define SERIAL1_RXPIN 12 //to GPS TX
 #define SERIAL1_TXPIN 13 //to GPS RX
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  3600        /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP  30        /* Time ESP32 will go to sleep (in seconds) */
 
 //struct of sensordatas
 struct SensorData{
@@ -40,6 +40,7 @@ std::vector<SensorData> datas;
 const String ID = "EXAMPLE_RING_123";
 const int MAX_PACKETS_TO_SEND = 7;
 int dataSize;
+int GPScounter = 0;
 //WidgetMap myMap(V0); 
 TinyGPSPlus gps;
 HardwareSerial SerialGPS(1);
@@ -86,10 +87,16 @@ void loop() {
         sendAllData();
         Serial.println("Packet sending Done!");
         viewTheData();
+        GPScounter = 0;
         goToLightSleep();
      }
-     delay(500);
+     delay(1000);
+     GPScounter++;
      Serial.println(".");
+     if(GPScounter == 900){
+        GPScounter = 0;
+        goToLightSleep();
+      }
     }
   } 
 }
@@ -100,7 +107,6 @@ void goToLightSleep(){
   Serial.println("Going to sleep now");
   Serial.flush(); 
   esp_light_sleep_start();
-  Serial.println("This will never be printed");
 }
 void viewTheData(){
   for(int i=0;i<datas.size();i++){
@@ -119,7 +125,6 @@ void sendLenghtAndID(){
       LoRa.beginPacket();
       LoRa.print(ID);
       LoRa.endPacket();
-      Serial.println("BEFORE SEDING 2");
       delay(1000);
       LoRa.beginPacket();
       LoRa.print(dataSize);
