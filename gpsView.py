@@ -1,5 +1,4 @@
 import mysql.connector
-#import MySQLdb as dbapi
 import sys
 import csv
 from mpl_toolkits.basemap import Basemap
@@ -12,7 +11,6 @@ import os
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 
-
 mydb = mysql.connector.connect(
   host="192.168.0.213",
   user="bird",
@@ -20,14 +18,11 @@ mydb = mysql.connector.connect(
   password="cemmacemma"
 )
 
-print(mydb)
-
 cursor = mydb.cursor()
 query = ("SELECT * FROM SensorData ")
 cursor.execute(query)
 
 result = cursor.fetchall()
-print(result)
 c = csv.writer(open('birdMonitor.csv', 'w', encoding='utf-8'))
 for x in result:
     c.writerow(x)
@@ -39,7 +34,6 @@ with open("birdMonitor.csv") as csvfile:
     for row in reader: # each row is a list
         results.append(row)
 
- #print(results)
 
 sensorDatas = []
 latitudes = []
@@ -66,9 +60,7 @@ m = Basemap(projection='mill',
            llcrnrlon = -180,
            urcrnrlon = 180,
            resolution = 'c')
-#m.bluemarble(scale=0.5)
 m.drawcoastlines()
-#m.etopo(scale=0.5, alpha=0.5)
 m.drawparallels(np.arange(-90,90,10),labels=[True,False,False,False])
 m.drawmeridians(np.arange(-180,180,20),labels=[0,0,0,1])
 
